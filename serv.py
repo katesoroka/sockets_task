@@ -6,17 +6,25 @@ import time
 
 
 class SockServer():
+    """
+    Server socket class
+    """
     def __init__(self, host, port):
         self.sel = selectors.DefaultSelector()
         self.lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.lsock.bind((host, port))
 
     def run(self):
-        self.lsock.listen()
-        print("listening on", (host, port))
-        self.lsock.setblocking(False)    # set block to false, to make
-        self.sel.register(self.lsock, selectors.EVENT_READ, data=None)  # EVENT_READ - make the socket listening
-        try:        # event loop
+        try:
+            self.lsock.bind((host, port))
+            self.lsock.listen()
+            print("listening on", (host, port))
+            self.lsock.setblocking(False)    # set block to false, to make
+            self.sel.register(self.lsock, selectors.EVENT_READ, data=None)  # EVENT_READ - make the socket listening
+        except Exception as e:
+            print(e)
+            exit(1)
+        # event loop
+        try:
             while True:
                 events = self.sel.select(timeout=None)
                 for key, mask in events:
@@ -24,8 +32,8 @@ class SockServer():
                         self._accept(key.fileobj)
                     else:                   # if connection already exists, process them
                         self._service_connection(key, mask)
-        except KeyboardInterrupt:
-            print("caught keyboard interrupt, exiting")
+        except Exception as e:
+            print(e)
         finally:
             self.sel.close()
 
